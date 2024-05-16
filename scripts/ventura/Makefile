@@ -1,4 +1,4 @@
-# Builds either a recovery image (Ventura-recovery.img) or a full installer (Ventura-full.img) for Ventura.
+# Builds either a recovery image (Sonoma-recovery.img) or a full installer (Sonoma-full.img) for Sonoma.
 
 # To build the full installer you must run this on macOS.
 # The recovery can be built on either macOS or Linux.
@@ -8,7 +8,7 @@
 
 # For macOS you'll probably need to run xcode-select --install to get the commandline tools
 
-VENTURA_APP=/Applications/Install\ macOS\ Ventura.app
+Sonoma_APP=/Applications/Install\ macOS\ Sonoma.app
 
 LINUX_TOOLS = qemu-img
 
@@ -25,33 +25,33 @@ ifeq ($(OS),)
 			$(if $(shell which $(exec)),some string,$(error "Missing required $(exec) tool for build")))
 endif
 
-all: Ventura-recovery.img
+all: Sonoma-recovery.img
 
 %.img : %.dmg
 	ln $< $@ || cp $< $@
 
 ifeq ($(OS),MACOS)
 
-Ventura-full.dmg : $(VENTURA_APP)
+Sonoma-full.dmg : $(Sonoma_APP)
 	hdiutil create -o "$@" -size 15g -layout GPTSPUD -fs HFS+J
 	hdiutil attach -noverify -mountpoint /Volumes/install_build "$@"
 	sudo "$</Contents/Resources/createinstallmedia" --volume /Volumes/install_build --nointeraction
-	hdiutil detach "/Volumes/Install macOS Ventura"
+	hdiutil detach "/Volumes/Install macOS Sonoma"
 
-# Avoid redownloading Ventura if the app already exists
-ifeq (,$(wildcard $(VENTURA_APP)))
-$(VENTURA_APP) : InstallAssistant.pkg
+# Avoid redownloading Sonoma if the app already exists
+ifeq (,$(wildcard $(Sonoma_APP)))
+$(Sonoma_APP) : InstallAssistant.pkg
 	sudo installer -pkg $< -target /
 endif
 
 else
 
-Ventura-full.dmg :
-	$(error "Building a full installer requires this script to be run on macOS, run 'make Ventura-recovery.img' instead")
+Sonoma-full.dmg :
+	$(error "Building a full installer requires this script to be run on macOS, run 'make Sonoma-recovery.img' instead")
 
 endif
 
-Ventura-recovery.dmg : com.apple.recovery.boot/BaseSystem.dmg
+Sonoma-recovery.dmg : com.apple.recovery.boot/BaseSystem.dmg
 	rm -f $@
 ifeq ($(OS),MACOS)
 	hdiutil convert $< -format UDRW -o $@
@@ -63,8 +63,8 @@ com.apple.recovery.boot/BaseSystem.dmg :
 	../../fetch-macOS-v2.py --action download --board-id Mac-4B682C642B45593E --os latest
 
 InstallAssistant.pkg :
-	../../backups/fetch-macOS.py --version latest --title "macOS Ventura"
+	../../backups/fetch-macOS.py --version latest --title "macOS Sonoma"
 
 clean :
-	rm -f SharedSupport.dmg InstallAssistant.pkg Ventura-recovery.img Ventura-full.img Ventura-recovery.dmg Ventura-full.dmg
+	rm -f SharedSupport.dmg InstallAssistant.pkg Sonoma-recovery.img Sonoma-full.img Sonoma-recovery.dmg Sonoma-full.dmg
 	rm -rf content com.apple.recovery.boot
